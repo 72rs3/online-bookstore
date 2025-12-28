@@ -9,6 +9,8 @@ import ServicesPage from './pages/ServicesPage';
 import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import AdminPanel from './pages/AdminPanel';
+import OrdersPage from './pages/OrdersPage';
 
 const App = () => {
   return (
@@ -22,6 +24,8 @@ const App = () => {
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/orders" element={<OrdersPage />} />
           {/* The dynamic page, using a URL parameter for the book ID */}
           <Route path="/book/:bookId" element={<BookDetailPage />} />
         </Routes>

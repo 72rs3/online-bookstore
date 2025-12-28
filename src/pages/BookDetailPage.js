@@ -1,99 +1,94 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import BOOKS from '../data/books';
 
 const BookDetailPage = () => {
   const { bookId } = useParams();
+  const navigate = useNavigate();
   const book = BOOKS.find(b => b.id === bookId);
+  const [loading, setLoading] = useState(false);
 
   if (!book) {
-    return <h2>Book Not Found</h2>;
+    return <div className="container mx-auto p-8 text-center"><h2>Book Not Found</h2></div>;
   }
 
+  const handleBuyNow = async () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('Please login to place an order');
+      navigate('/login');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          book_id: book.id,
+          quantity: 1,
+          total_price: book.price
+        }),
+      });
+
+      if (response.ok) {
+        alert('Order placed successfully! Check your email for confirmation.');
+      } else {
+        alert('Failed to place order');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div style={containerStyle}>
-      <div style={bookInfoStyle}>
-        <img src={book.coverImage} alt={book.title} style={imageStyle} />
-        <div>
-          <h1>{book.title}</h1>
-          <h2>by {book.author}</h2>
-          <p style={priceStyle}>${book.price.toFixed(2)}</p>
-          <p><strong>Category:</strong> {book.category}</p>
-          <p><strong>Status:</strong> {book.inStock ? 'In Stock' : 'Out of Stock'}</p>
-          <p style={descriptionStyle}>{book.description}</p>
-          <button style={buttonStyle} disabled={!book.inStock}>
-            {book.inStock ? 'Add to Cart' : 'Notify Me'}
+    <div className="container mx-auto p-8 max-w-4xl">
+      <div className="flex flex-col md:flex-row gap-8 mb-12">
+        <img src={book.coverImage} alt={book.title} className="w-full md:w-64 h-auto shadow-lg rounded" />
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
+          <h2 className="text-xl text-gray-600 mb-4">by {book.author}</h2>
+          <p className="text-2xl font-bold text-red-700 mb-4">${book.price.toFixed(2)}</p>
+          <div className="space-y-2 mb-6">
+            <p><strong>Category:</strong> {book.category}</p>
+            <p><strong>Status:</strong> <span className={book.inStock ? 'text-green-600' : 'text-red-600'}>{book.inStock ? 'In Stock' : 'Out of Stock'}</span></p>
+          </div>
+          <p className="text-gray-700 leading-relaxed mb-8">{book.description}</p>
+          <button 
+            onClick={handleBuyNow}
+            disabled={!book.inStock || loading}
+            className={`px-8 py-3 rounded-lg font-bold text-white transition ${book.inStock ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'}`}
+          >
+            {loading ? 'Processing...' : (book.inStock ? 'Buy Now' : 'Out of Stock')}
           </button>
         </div>
       </div>
 
-      <div style={reviewsStyle}>
-        <h3>Customer Reviews ({book.reviews.length})</h3>
+      <div className="border-t pt-8">
+        <h3 className="text-2xl font-bold mb-6">Customer Reviews ({book.reviews.length})</h3>
         {book.reviews.length > 0 ? (
-          book.reviews.map(review => (
-            <div key={review.id} style={reviewCardStyle}>
-              <p><strong>{review.user}</strong> - Rating: {review.rating}/5</p>
-              <p>{review.comment}</p>
-            </div>
-          ))
+          <div className="space-y-4">
+            {book.reviews.map(review => (
+              <div key={review.id} className="bg-gray-50 p-4 rounded-lg border">
+                <div className="flex justify-between mb-2">
+                  <span className="font-bold">{review.user}</span>
+                  <span className="text-yellow-500">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                </div>
+                <p className="text-gray-600">{review.comment}</p>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p>No reviews yet. Be the first to review this book!</p>
+          <p className="text-gray-500 italic">No reviews yet. Be the first to review this book!</p>
         )}
       </div>
     </div>
   );
-};
-
-// Basic inline styles for demonstration
-const containerStyle = {
-  maxWidth: '900px',
-  margin: '0 auto',
-};
-
-const bookInfoStyle = {
-  display: 'flex',
-  gap: '30px',
-  marginBottom: '40px',
-  alignItems: 'flex-start',
-};
-
-const imageStyle = {
-  width: '250px',
-  height: 'auto',
-  flexShrink: 0,
-  backgroundColor: '#eee',
-};
-
-const priceStyle = {
-  fontSize: '1.5em',
-  color: '#b12704',
-  fontWeight: 'bold',
-};
-
-const descriptionStyle = {
-  lineHeight: '1.6',
-};
-
-const buttonStyle = {
-  padding: '10px 20px',
-  fontSize: '1em',
-  backgroundColor: '#ff9900',
-  border: 'none',
-  borderRadius: '5px',
-  cursor: 'pointer',
-  marginTop: '15px',
-};
-
-const reviewsStyle = {
-  borderTop: '1px solid #ccc',
-  paddingTop: '20px',
-};
-
-const reviewCardStyle = {
-  border: '1px solid #eee',
-  padding: '15px',
-  marginBottom: '10px',
-  borderRadius: '5px',
 };
 
 export default BookDetailPage;
