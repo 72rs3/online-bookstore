@@ -1,7 +1,17 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Header = () => {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    alert('Logged out successfully');
+    navigate('/login');
+  };
+
   return (
     <header style={headerStyle}>
       <h1 style={logoStyle}><Link to="/" style={linkStyle}>Fareed Al Sayegh Book Shop</Link></h1>
@@ -11,14 +21,23 @@ const Header = () => {
           <li style={liStyle}><Link to="/about" style={linkStyle}>About</Link></li>
           <li style={liStyle}><Link to="/services" style={linkStyle}>Services</Link></li>
           <li style={liStyle}><Link to="/contact" style={linkStyle}>Contact</Link></li>
-          <li style={liStyle}><Link to="/book/978-0321765723" style={linkStyle}>Dynamic Book Example</Link></li>
+          {user ? (
+            <>
+              <li style={liStyle}><span style={linkStyle}>Welcome, {user.username}</span></li>
+              <li style={liStyle}><button onClick={handleLogout} style={logoutButtonStyle}>Logout</button></li>
+            </>
+          ) : (
+            <>
+              <li style={liStyle}><Link to="/login" style={linkStyle}>Login</Link></li>
+              <li style={liStyle}><Link to="/signup" style={linkStyle}>Sign Up</Link></li>
+            </>
+          )}
         </ul>
       </nav>
     </header>
   );
 };
 
-// Basic inline styles for demonstration (replace with CSS/Tailwind/Bootstrap)
 const headerStyle = {
   background: '#333',
   color: '#fff',
@@ -38,6 +57,7 @@ const ulStyle = {
   padding: 0,
   margin: 0,
   display: 'flex',
+  alignItems: 'center',
 };
 
 const liStyle = {
@@ -47,6 +67,16 @@ const liStyle = {
 const linkStyle = {
   color: '#fff',
   textDecoration: 'none',
+  fontWeight: 'bold',
+};
+
+const logoutButtonStyle = {
+  background: '#f44336',
+  color: '#fff',
+  border: 'none',
+  padding: '5px 10px',
+  borderRadius: '4px',
+  cursor: 'pointer',
   fontWeight: 'bold',
 };
 
