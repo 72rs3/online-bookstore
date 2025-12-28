@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -12,12 +12,16 @@ import SignupPage from './pages/SignupPage';
 import AdminPanel from './pages/AdminPanel';
 import OrdersPage from './pages/OrdersPage';
 import ProfilePage from './pages/ProfilePage';
+import CartPage from './pages/CartPage';
 
 const App = () => {
+  const location = useLocation();
+  const hideChrome = ['/login', '/signup'].includes(location.pathname);
+
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: '50px' }}>
-      <Header />
-      <main style={{ padding: '20px' }}>
+    <div className="min-h-screen text-slate-100">
+      {!hideChrome && <Header />}
+      <main className="page-shell">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
@@ -28,11 +32,12 @@ const App = () => {
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/cart" element={<CartPage />} />
           {/* The dynamic page, using a URL parameter for the book ID */}
           <Route path="/book/:bookId" element={<BookDetailPage />} />
         </Routes>
       </main>
-      <Footer />
+      {!hideChrome && <Footer />}
     </div>
   );
 };
