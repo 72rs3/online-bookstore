@@ -27,6 +27,7 @@ const Header = () => {
                 <li style={liStyle}><Link to="/admin" style={linkStyle}>Admin Panel</Link></li>
               )}
               <li style={liStyle}><Link to="/orders" style={linkStyle}>My Orders</Link></li>
+              <li style={liStyle}><Link to="/profile" style={linkStyle}>Profile</Link></li>
               <li style={liStyle}><span style={linkStyle}>Welcome, {user.username}</span></li>
               <li style={liStyle}><button onClick={handleLogout} style={logoutButtonStyle}>Logout</button></li>
             </>

@@ -1,12 +1,27 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import BOOKS from '../data/books';
+// import BOOKS from '../data/books';
+import { useEffect } from 'react';
 
 const BookDetailPage = () => {
   const { bookId } = useParams();
   const navigate = useNavigate();
-  const book = BOOKS.find(b => b.id === bookId);
-  const [loading, setLoading] = useState(false);
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [orderLoading, setOrderLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/books`)
+      .then(res => res.json())
+      .then(data => {
+        const foundBook = data.find(b => b.id.toString() === bookId);
+        setBook(foundBook);
+        setLoading(false);
+      })
+      .catch(err => console.error(err));
+  }, [bookId]);
+
+  if (loading) return <div className="p-20 text-center">Loading book details...</div>;
 
   if (!book) {
     return <div className="container mx-auto p-8 text-center"><h2>Book Not Found</h2></div>;
@@ -20,7 +35,7 @@ const BookDetailPage = () => {
       return;
     }
 
-    setLoading(true);
+    setOrderLoading(true);
     try {
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
@@ -42,7 +57,7 @@ const BookDetailPage = () => {
       console.error('Error:', error);
       alert('An error occurred');
     } finally {
-      setLoading(false);
+      setOrderLoading(false);
     }
   };
 
@@ -61,10 +76,10 @@ const BookDetailPage = () => {
           <p className="text-gray-700 leading-relaxed mb-8">{book.description}</p>
           <button 
             onClick={handleBuyNow}
-            disabled={!book.inStock || loading}
+            disabled={!book.inStock || orderLoading}
             className={`px-8 py-3 rounded-lg font-bold text-white transition ${book.inStock ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'}`}
           >
-            {loading ? 'Processing...' : (book.inStock ? 'Buy Now' : 'Out of Stock')}
+            {orderLoading ? 'Processing...' : (book.inStock ? 'Buy Now' : 'Out of Stock')}
           </button>
         </div>
       </div>

@@ -168,3 +168,53 @@ app.patch('/api/admin/orders/:id', (req, res) => {
         res.json({ message: 'Order status updated' });
     });
 });
+
+// User: Update Profile
+app.put('/api/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { username, email, password } = req.body;
+    
+    let query = 'UPDATE users SET username = ?, email = ?';
+    let params = [username, email];
+
+    if (password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        query += ', password = ?';
+        params.push(hashedPassword);
+    }
+
+    query += ' WHERE id = ?';
+    params.push(id);
+
+    db.query(query, params, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Profile updated successfully' });
+    });
+});
+
+// Admin: Get all books
+app.get('/api/books', (req, res) => {
+    db.query('SELECT * FROM books', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// Admin: Add a book
+app.post('/api/admin/books', (req, res) => {
+    const { title, author, price, category, coverImage, description } = req.body;
+    const query = 'INSERT INTO books (title, author, price, category, coverImage, description) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(query, [title, author, price, category, coverImage, description], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ message: 'Book added successfully' });
+    });
+});
+
+// Admin: Delete a book
+app.delete('/api/admin/books/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM books WHERE id = ?', [id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Book deleted successfully' });
+    });
+});
