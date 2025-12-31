@@ -44,7 +44,6 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '1mb' }));
 const upload = multer({ dest: uploadDir });
-
 const TAP_SECRET = process.env.TAP_SECRET_KEY;
 const TAP_BASE = process.env.TAP_CHARGE_BASE || 'https://api.tap.company/v2/charges';
 const TAP_REDIRECT = process.env.TAP_REDIRECT_URL || 'http://localhost:3000/orders';
@@ -230,7 +229,6 @@ app.put('/api/users/:id', requireAuth, async (req, res) => {
     if (parseInt(id, 10) !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden' });
     }
-
     let query = 'UPDATE users SET username = ?, email = ?';
     let params = [username, email];
 
@@ -334,6 +332,7 @@ app.post('/api/payments/charge', requireAuth, async (req, res) => {
                 metadata: { source: 'fareed-bookshop' },
                 receipt: { email: false, sms: false },
                 reference: reference || {},
+<<<<<<< HEAD
                 // Use Tap hosted page / all sources to redirect user
                 source: { id: 'src_all' },
                 redirect: { url: TAP_REDIRECT },

@@ -11,9 +11,10 @@ const ProfilePage = () => {
         e.preventDefault();
         setLoading(true);
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`http://localhost:5000/api/users/${user.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ username, email, password: password || undefined }),
             });
             if (response.ok) {

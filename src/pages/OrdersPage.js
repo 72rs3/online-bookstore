@@ -17,7 +17,10 @@ const OrdersPage = () => {
 
     const fetchOrders = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/orders/${user.id}`);
+            const token = localStorage.getItem('token');
+            const response = await fetch(`http://localhost:5000/api/orders/${user.id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
             const data = await response.json();
             setOrders(data);
             setLoading(false);
@@ -26,32 +29,36 @@ const OrdersPage = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading your orders...</div>;
+    if (loading) return <div className="p-8 text-center text-white">Loading your orders...</div>;
 
     return (
-        <div className="container mx-auto p-8 max-w-4xl">
-            <h2 className="text-3xl font-bold mb-8">My Orders</h2>
+        <div className="page-shell max-w-4xl">
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Library</p>
+                    <h2 className="text-3xl font-extrabold text-white">My Orders</h2>
+                </div>
+                <button onClick={() => navigate('/')} className="btn-primary">Start Shopping</button>
+            </div>
             {orders.length === 0 ? (
-                <div className="bg-blue-50 p-8 rounded-lg text-center">
-                    <p className="text-blue-600 mb-4">You haven't placed any orders yet.</p>
-                    <button onClick={() => navigate('/')} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
-                        Start Shopping
-                    </button>
+                <div className="card text-center py-16">
+                    <p className="text-slate-300 mb-4">You haven't placed any orders yet.</p>
+                    <button onClick={() => navigate('/')} className="btn-primary">Browse books</button>
                 </div>
             ) : (
                 <div className="space-y-4">
                     {orders.map(order => (
-                        <div key={order.id} className="bg-white p-6 rounded-lg shadow border flex justify-between items-center">
+                        <div key={order.id} className="card flex justify-between items-center">
                             <div>
-                                <p className="text-sm text-gray-500">Order #{order.id}</p>
-                                <p className="font-bold text-lg">Total: ${order.total_price}</p>
-                                <p className="text-sm text-gray-600">Date: {new Date(order.created_at).toLocaleDateString()}</p>
+                                <p className="text-sm text-slate-400">Order #{order.id}</p>
+                                <p className="font-bold text-xl text-white">Total: ${order.total_price}</p>
+                                <p className="text-sm text-slate-400">Date: {new Date(order.created_at).toLocaleDateString()}</p>
                             </div>
                             <div className="text-right">
                                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                    order.status === 'completed' ? 'bg-green-100 text-green-700' : 
-                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                    'bg-gray-100 text-gray-700'
+                                    order.status === 'completed' ? 'bg-green-500/20 text-green-200' : 
+                                    order.status === 'pending' ? 'bg-yellow-500/20 text-yellow-100' : 
+                                    'bg-slate-500/20 text-slate-200'
                                 }`}>
                                     {order.status.toUpperCase()}
                                 </span>

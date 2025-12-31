@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { addToCart } from '../utils/cart';
 
 const BookDetailPage = () => {
   const { bookId } = useParams();
@@ -8,10 +7,9 @@ const BookDetailPage = () => {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [orderLoading, setOrderLoading] = useState(false);
-  const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/books')
+    fetch(`http://localhost:5000/api/books`)
       .then(res => res.json())
       .then(data => {
         const foundBook = data.find(b => b.id.toString() === bookId);
@@ -31,14 +29,14 @@ const BookDetailPage = () => {
 
     setOrderLoading(true);
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          user_id: user.id,
           book_id: book.id,
           quantity: 1,
-          total_price: Number(book.price) || 0
+          total_price: book.price
         }),
       });
 
@@ -55,24 +53,18 @@ const BookDetailPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+    </div>
+  );
 
-  if (!book) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">Book Not Found</h2>
-        <button onClick={() => navigate('/')} className="text-blue-600 font-bold hover:underline">Return to Home</button>
-      </div>
-    );
-  }
-
-  const available = book.inStock !== undefined ? Boolean(book.inStock) : true;
+  if (!book) return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">Book Not Found</h2>
+      <button onClick={() => navigate('/')} className="text-blue-600 font-bold hover:underline">Return to Home</button>
+    </div>
+  );
 
   return (
     <div className="bg-gray-50 min-h-screen py-12">
@@ -81,10 +73,10 @@ const BookDetailPage = () => {
           <div className="flex flex-col lg:flex-row">
             {/* Left: Image */}
             <div className="lg:w-2/5 bg-gray-100 p-12 flex items-center justify-center">
-              <img
-                src={book.coverImage || 'https://via.placeholder.com/400x600?text=No+Cover'}
-                alt={book.title}
-                className="w-full max-w-sm h-auto shadow-2xl rounded-lg transform transition-transform hover:scale-105 duration-500"
+              <img 
+                src={book.coverImage || 'https://via.placeholder.com/400x600?text=No+Cover'} 
+                alt={book.title} 
+                className="w-full max-w-sm h-auto shadow-2xl rounded-lg transform transition-transform hover:scale-105 duration-500" 
               />
             </div>
 
@@ -99,12 +91,10 @@ const BookDetailPage = () => {
               </div>
 
               <div className="flex items-center space-x-4 mb-8">
-                <span className="text-4xl font-black text-blue-600">
-                  {isNaN(Number(book.price)) ? '$—' : `$${Number(book.price).toFixed(2)}`}
-                </span>
+                <span className="text-4xl font-black text-blue-600">${book.price.toFixed(2)}</span>
                 <div className="h-8 w-px bg-gray-200"></div>
-                <span className={`px-3 py-1 rounded-lg text-sm font-bold ${available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                  {available ? 'In Stock' : 'Out of Stock'}
+                <span className={`px-3 py-1 rounded-lg text-sm font-bold ${book.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {book.inStock ? '✓ In Stock' : '✕ Out of Stock'}
                 </span>
               </div>
 
@@ -116,26 +106,19 @@ const BookDetailPage = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <button
+                <button 
                   onClick={handleBuyNow}
-                  disabled={!available || orderLoading}
+                  disabled={!book.inStock || orderLoading}
                   className={`flex-1 px-8 py-4 rounded-2xl font-black text-lg transition-all duration-300 shadow-lg ${
-                    available
-                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200'
+                    book.inStock 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
                   }`}
                 >
-                  {orderLoading ? 'Processing...' : (available ? 'Purchase Now' : 'Currently Unavailable')}
+                  {orderLoading ? 'Processing...' : (book.inStock ? 'Purchase Now' : 'Currently Unavailable')}
                 </button>
-                <button
-                  onClick={() => {
-                    addToCart(book);
-                    setAdded(true);
-                    setTimeout(() => setAdded(false), 1500);
-                  }}
-                  className="px-8 py-4 rounded-2xl font-bold text-blue-600 border-2 border-blue-100 hover:bg-blue-50 transition"
-                >
-                  {added ? 'Added!' : 'Add to Cart'}
+                <button className="px-8 py-4 rounded-2xl font-bold text-gray-700 border-2 border-gray-200 hover:bg-gray-50 transition">
+                  Add to Wishlist
                 </button>
               </div>
             </div>
@@ -155,7 +138,7 @@ const BookDetailPage = () => {
                     </div>
                     <span className="font-bold text-gray-900">{i === 1 ? 'John Doe' : 'Alice Smith'}</span>
                   </div>
-                  <div className="text-yellow-400 text-sm">ミ.ミ.ミ.ミ.ミ.</div>
+                  <div className="text-yellow-400 text-sm">★★★★★</div>
                 </div>
                 <p className="text-gray-600 italic leading-relaxed">
                   "{i === 1 ? "An absolute masterpiece. I couldn't put it down from the first page!" : "Beautifully written and deeply moving. A must-read for everyone."}"
@@ -170,3 +153,4 @@ const BookDetailPage = () => {
 };
 
 export default BookDetailPage;
+
