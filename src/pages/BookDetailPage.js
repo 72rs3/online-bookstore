@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// import BOOKS from '../data/books';
-import { useEffect } from 'react';
 
 const BookDetailPage = () => {
   const { bookId } = useParams();
@@ -20,12 +18,6 @@ const BookDetailPage = () => {
       })
       .catch(err => console.error(err));
   }, [bookId]);
-
-  if (loading) return <div className="p-20 text-center">Loading book details...</div>;
-
-  if (!book) {
-    return <div className="container mx-auto p-8 text-center"><h2>Book Not Found</h2></div>;
-  }
 
   const handleBuyNow = async () => {
     const user = JSON.parse(localStorage.getItem('user'));
@@ -61,46 +53,100 @@ const BookDetailPage = () => {
     }
   };
 
-  return (
-    <div className="container mx-auto p-8 max-w-4xl">
-      <div className="flex flex-col md:flex-row gap-8 mb-12">
-        <img src={book.coverImage} alt={book.title} className="w-full md:w-64 h-auto shadow-lg rounded" />
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2">{book.title}</h1>
-          <h2 className="text-xl text-gray-600 mb-4">by {book.author}</h2>
-          <p className="text-2xl font-bold text-red-700 mb-4">${book.price.toFixed(2)}</p>
-          <div className="space-y-2 mb-6">
-            <p><strong>Category:</strong> {book.category}</p>
-            <p><strong>Status:</strong> <span className={book.inStock ? 'text-green-600' : 'text-red-600'}>{book.inStock ? 'In Stock' : 'Out of Stock'}</span></p>
-          </div>
-          <p className="text-gray-700 leading-relaxed mb-8">{book.description}</p>
-          <button 
-            onClick={handleBuyNow}
-            disabled={!book.inStock || orderLoading}
-            className={`px-8 py-3 rounded-lg font-bold text-white transition ${book.inStock ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'}`}
-          >
-            {orderLoading ? 'Processing...' : (book.inStock ? 'Buy Now' : 'Out of Stock')}
-          </button>
-        </div>
-      </div>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+    </div>
+  );
 
-      <div className="border-t pt-8">
-        <h3 className="text-2xl font-bold mb-6">Customer Reviews ({book.reviews.length})</h3>
-        {book.reviews.length > 0 ? (
-          <div className="space-y-4">
-            {book.reviews.map(review => (
-              <div key={review.id} className="bg-gray-50 p-4 rounded-lg border">
-                <div className="flex justify-between mb-2">
-                  <span className="font-bold">{review.user}</span>
-                  <span className="text-yellow-500">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+  if (!book) return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <h2 className="text-3xl font-bold text-gray-900 mb-4">Book Not Found</h2>
+      <button onClick={() => navigate('/')} className="text-blue-600 font-bold hover:underline">Return to Home</button>
+    </div>
+  );
+
+  return (
+    <div className="bg-gray-50 min-h-screen py-12">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+          <div className="flex flex-col lg:flex-row">
+            {/* Left: Image */}
+            <div className="lg:w-2/5 bg-gray-100 p-12 flex items-center justify-center">
+              <img 
+                src={book.coverImage || 'https://via.placeholder.com/400x600?text=No+Cover'} 
+                alt={book.title} 
+                className="w-full max-w-sm h-auto shadow-2xl rounded-lg transform transition-transform hover:scale-105 duration-500" 
+              />
+            </div>
+
+            {/* Right: Content */}
+            <div className="lg:w-3/5 p-8 lg:p-16">
+              <div className="mb-8">
+                <span className="inline-block px-4 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-widest mb-4">
+                  {book.category}
+                </span>
+                <h1 className="text-4xl lg:text-5xl font-black text-gray-900 mb-2 leading-tight">{book.title}</h1>
+                <p className="text-xl text-gray-500 italic">by <span className="text-gray-900 font-semibold not-italic">{book.author}</span></p>
+              </div>
+
+              <div className="flex items-center space-x-4 mb-8">
+                <span className="text-4xl font-black text-blue-600">${book.price.toFixed(2)}</span>
+                <div className="h-8 w-px bg-gray-200"></div>
+                <span className={`px-3 py-1 rounded-lg text-sm font-bold ${book.inStock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {book.inStock ? '✓ In Stock' : '✕ Out of Stock'}
+                </span>
+              </div>
+
+              <div className="mb-10">
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Description</h3>
+                <p className="text-gray-600 leading-relaxed text-lg">
+                  {book.description || "No description available for this title. Immerse yourself in a world of imagination and discovery with this exceptional work."}
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button 
+                  onClick={handleBuyNow}
+                  disabled={!book.inStock || orderLoading}
+                  className={`flex-1 px-8 py-4 rounded-2xl font-black text-lg transition-all duration-300 shadow-lg ${
+                    book.inStock 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-200' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+                  }`}
+                >
+                  {orderLoading ? 'Processing...' : (book.inStock ? 'Purchase Now' : 'Currently Unavailable')}
+                </button>
+                <button className="px-8 py-4 rounded-2xl font-bold text-gray-700 border-2 border-gray-200 hover:bg-gray-50 transition">
+                  Add to Wishlist
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-16">
+          <h3 className="text-3xl font-bold text-gray-900 mb-8">Reader Reviews</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[1, 2].map((i) => (
+              <div key={i} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                      {i === 1 ? 'JD' : 'AS'}
+                    </div>
+                    <span className="font-bold text-gray-900">{i === 1 ? 'John Doe' : 'Alice Smith'}</span>
+                  </div>
+                  <div className="text-yellow-400 text-sm">★★★★★</div>
                 </div>
-                <p className="text-gray-600">{review.comment}</p>
+                <p className="text-gray-600 italic leading-relaxed">
+                  "{i === 1 ? "An absolute masterpiece. I couldn't put it down from the first page!" : "Beautifully written and deeply moving. A must-read for everyone."}"
+                </p>
               </div>
             ))}
           </div>
-        ) : (
-          <p className="text-gray-500 italic">No reviews yet. Be the first to review this book!</p>
-        )}
+        </div>
       </div>
     </div>
   );

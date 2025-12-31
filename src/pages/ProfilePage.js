@@ -32,48 +32,67 @@ const ProfilePage = () => {
     };
 
     return (
-        <div className="container mx-auto p-8 max-w-md">
-            <div className="bg-white p-8 rounded-xl shadow-lg border">
-                <h2 className="text-2xl font-bold mb-6 text-center">My Profile</h2>
-                <form onSubmit={handleUpdate} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
-                        <input
-                            type="text"
-                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            required
-                        />
+        <div className="min-h-screen bg-gray-50 py-20 px-4">
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+                    <div className="bg-blue-600 h-32 relative">
+                        <div className="absolute -bottom-12 left-12">
+                            <div className="w-24 h-24 bg-white rounded-3xl shadow-lg flex items-center justify-center text-4xl border-4 border-white">
+                                👤
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
+                    <div className="pt-16 p-12">
+                        <div className="mb-10">
+                            <h2 className="text-3xl font-black text-gray-900">Account Settings</h2>
+                            <p className="text-gray-500">Manage your personal information and security</p>
+                        </div>
+
+                        <form onSubmit={handleUpdate} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Display Name</label>
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-0 focus:ring-4 focus:ring-blue-500/20 outline-none transition"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+                                    <input
+                                        type="email"
+                                        className="w-full px-4 py-3 rounded-xl bg-gray-50 border-0 focus:ring-4 focus:ring-blue-500/20 outline-none transition"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2">New Password</label>
+                                <input
+                                    type="password"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 border-0 focus:ring-4 focus:ring-blue-500/20 outline-none transition"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Leave blank to keep current"
+                                />
+                            </div>
+                            <div className="pt-4">
+                                <button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-2xl font-black text-lg transition shadow-xl shadow-blue-600/20 disabled:bg-gray-400"
+                                >
+                                    {loading ? 'Saving Changes...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">New Password (leave blank to keep current)</label>
-                        <input
-                            type="password"
-                            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 outline-none"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                        />
-                    </div>
-                    <button 
-                        type="submit" 
-                        disabled={loading}
-                        className="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-gray-400"
-                    >
-                        {loading ? 'Updating...' : 'Update Profile'}
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
     );

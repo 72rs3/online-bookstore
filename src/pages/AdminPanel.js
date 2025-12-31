@@ -12,7 +12,6 @@ const AdminPanel = () => {
 
     useEffect(() => {
         if (!currentUser || currentUser.role !== 'admin') {
-            alert('Access denied. Admins only.');
             navigate('/');
             return;
         }
@@ -26,12 +25,9 @@ const AdminPanel = () => {
                 fetch('http://localhost:5000/api/admin/orders'),
                 fetch('http://localhost:5000/api/books')
             ]);
-            const usersData = await usersRes.json();
-            const ordersData = await ordersRes.json();
-            const booksData = await booksRes.json();
-            setUsers(usersData);
-            setOrders(ordersData);
-            setBooks(booksData);
+            setUsers(await usersRes.json());
+            setOrders(await ordersRes.json());
+            setBooks(await booksRes.json());
             setLoading(false);
         } catch (error) {
             console.error('Error fetching admin data:', error);
@@ -47,7 +43,6 @@ const AdminPanel = () => {
                 body: JSON.stringify(newBook),
             });
             if (response.ok) {
-                alert('Book added!');
                 setNewBook({ title: '', author: '', price: '', category: '', coverImage: '', description: '' });
                 fetchData();
             }
@@ -68,144 +63,141 @@ const AdminPanel = () => {
 
     const updateOrderStatus = async (orderId, newStatus) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/orders/${orderId}`, {
+            await fetch(`http://localhost:5000/api/admin/orders/${orderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
             });
-            if (response.ok) {
-                alert('Order updated');
-                fetchData();
-            }
+            fetchData();
         } catch (error) {
             console.error('Error updating order:', error);
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading Admin Panel...</div>;
+    if (loading) return <div className="p-20 text-center">Loading Dashboard...</div>;
 
     return (
-        <div className="container mx-auto p-8">
-            <h2 className="text-3xl font-bold mb-8">Admin Dashboard</h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                {/* Users Management */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold mb-4 border-b pb-2">User Management</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-2">ID</th>
-                                    <th className="p-2">Username</th>
-                                    <th className="p-2">Email</th>
-                                    <th className="p-2">Role</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {users.map(user => (
-                                    <tr key={user.id} className="border-b">
-                                        <td className="p-2">{user.id}</td>
-                                        <td className="p-2">{user.username}</td>
-                                        <td className="p-2">{user.email}</td>
-                                        <td className="p-2">
-                                            <span className={`px-2 py-1 rounded text-xs ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
+        <div className="bg-gray-50 min-h-screen py-12">
+            <div className="container mx-auto px-4">
+                <div className="flex items-center justify-between mb-12">
+                    <h2 className="text-4xl font-black text-gray-900 tracking-tight">Admin <span className="text-blue-600">Dashboard</span></h2>
+                    <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border font-bold text-gray-600">
+                        Total Revenue: <span className="text-green-600">${orders.reduce((acc, o) => acc + parseFloat(o.total_price), 0).toFixed(2)}</span>
+                    </div>
+                </div>
+                
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mb-12">
+                    {/* Users Management */}
+                    <div className="xl:col-span-1 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h3 className="text-xl font-bold mb-6 flex items-center">
+                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            User Directory
+                        </h3>
+                        <div className="space-y-4">
+                            {users.map(user => (
+                                <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                                    <div>
+                                        <p className="font-bold text-gray-900">{user.username}</p>
+                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                                        {user.role}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Orders Management */}
+                    <div className="xl:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                        <h3 className="text-xl font-bold mb-6 flex items-center">
+                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                            Recent Orders
+                        </h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="text-gray-400 text-xs uppercase tracking-widest border-b">
+                                        <th className="pb-4 font-bold">Order ID</th>
+                                        <th className="pb-4 font-bold">Customer</th>
+                                        <th className="pb-4 font-bold">Total</th>
+                                        <th className="pb-4 font-bold">Status</th>
+                                        <th className="pb-4 font-bold text-right">Action</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {orders.map(order => (
+                                        <tr key={order.id} className="border-b last:border-0">
+                                            <td className="py-4 font-bold text-gray-900">#{order.id}</td>
+                                            <td className="py-4 text-gray-600">{order.username}</td>
+                                            <td className="py-4 font-black text-gray-900">${order.total_price}</td>
+                                            <td className="py-4">
+                                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                    order.status === 'completed' ? 'bg-green-100 text-green-700' : 
+                                                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                                    'bg-blue-100 text-blue-700'
+                                                }`}>
+                                                    {order.status}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                <select 
+                                                    className="bg-gray-50 border-0 rounded-lg text-xs font-bold p-2 outline-none focus:ring-2 focus:ring-blue-500"
+                                                    value={order.status}
+                                                    onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                                >
+                                                    <option value="pending">Pending</option>
+                                                    <option value="shipped">Shipped</option>
+                                                    <option value="completed">Completed</option>
+                                                    <option value="cancelled">Cancelled</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
-                {/* Orders Management */}
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold mb-4 border-b pb-2">Order Management</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-2">ID</th>
-                                    <th className="p-2">User</th>
-                                    <th className="p-2">Total</th>
-                                    <th className="p-2">Status</th>
-                                    <th className="p-2">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {orders.map(order => (
-                                    <tr key={order.id} className="border-b">
-                                        <td className="p-2">{order.id}</td>
-                                        <td className="p-2">{order.username}</td>
-                                        <td className="p-2">${order.total_price}</td>
-                                        <td className="p-2">
-                                            <span className={`px-2 py-1 rounded text-xs ${order.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                                {order.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-2">
-                                            <select 
-                                                className="text-sm border rounded p-1"
-                                                value={order.status}
-                                                onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                                            >
-                                                <option value="pending">Pending</option>
-                                                <option value="shipped">Shipped</option>
-                                                <option value="completed">Completed</option>
-                                                <option value="cancelled">Cancelled</option>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {/* Book Management */}
-            <div className="bg-white p-6 rounded-lg shadow-md mb-12">
-                <h3 className="text-xl font-semibold mb-4 border-b pb-2">Book Inventory</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Add Book Form */}
-                    <div className="md:col-span-1 bg-gray-50 p-4 rounded">
-                        <h4 className="font-bold mb-4">Add New Book</h4>
-                        <form onSubmit={handleAddBook} className="space-y-3">
-                            <input type="text" placeholder="Title" className="w-full p-2 border rounded" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} required />
-                            <input type="text" placeholder="Author" className="w-full p-2 border rounded" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} required />
-                            <input type="number" placeholder="Price" className="w-full p-2 border rounded" value={newBook.price} onChange={e => setNewBook({...newBook, price: e.target.value})} required />
-                            <input type="text" placeholder="Category" className="w-full p-2 border rounded" value={newBook.category} onChange={e => setNewBook({...newBook, category: e.target.value})} required />
-                            <input type="text" placeholder="Cover Image URL" className="w-full p-2 border rounded" value={newBook.coverImage} onChange={e => setNewBook({...newBook, coverImage: e.target.value})} />
-                            <textarea placeholder="Description" className="w-full p-2 border rounded" value={newBook.description} onChange={e => setNewBook({...newBook, description: e.target.value})}></textarea>
-                            <button type="submit" className="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">Add Book</button>
-                        </form>
-                    </div>
-                    {/* Book List */}
-                    <div className="md:col-span-2 overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-2">Title</th>
-                                    <th className="p-2">Author</th>
-                                    <th className="p-2">Price</th>
-                                    <th className="p-2">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                {/* Inventory Management */}
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                    <h3 className="text-xl font-bold mb-8 flex items-center">
+                        <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                        Inventory Management
+                    </h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
+                        <div className="lg:col-span-1">
+                            <h4 className="font-black text-gray-900 mb-6 uppercase text-xs tracking-widest">Add New Title</h4>
+                            <form onSubmit={handleAddBook} className="space-y-4">
+                                <input type="text" placeholder="Book Title" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" value={newBook.title} onChange={e => setNewBook({...newBook, title: e.target.value})} required />
+                                <input type="text" placeholder="Author Name" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" value={newBook.author} onChange={e => setNewBook({...newBook, author: e.target.value})} required />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <input type="number" placeholder="Price" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" value={newBook.price} onChange={e => setNewBook({...newBook, price: e.target.value})} required />
+                                    <input type="text" placeholder="Category" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" value={newBook.category} onChange={e => setNewBook({...newBook, category: e.target.value})} required />
+                                </div>
+                                <input type="text" placeholder="Cover Image URL" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" value={newBook.coverImage} onChange={e => setNewBook({...newBook, coverImage: e.target.value})} />
+                                <textarea placeholder="Book Description" className="w-full p-3 bg-gray-50 border-0 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-32" value={newBook.description} onChange={e => setNewBook({...newBook, description: e.target.value})}></textarea>
+                                <button type="submit" className="w-full bg-blue-600 text-white py-4 rounded-xl font-black hover:bg-blue-700 transition shadow-lg shadow-blue-100">Add to Library</button>
+                            </form>
+                        </div>
+                        <div className="lg:col-span-3">
+                            <h4 className="font-black text-gray-900 mb-6 uppercase text-xs tracking-widest">Current Stock</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {books.map(book => (
-                                    <tr key={book.id} className="border-b">
-                                        <td className="p-2">{book.title}</td>
-                                        <td className="p-2">{book.author}</td>
-                                        <td className="p-2">${book.price}</td>
-                                        <td className="p-2">
-                                            <button onClick={() => deleteBook(book.id)} className="text-red-600 hover:underline">Delete</button>
-                                        </td>
-                                    </tr>
+                                    <div key={book.id} className="flex items-center p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-blue-200 transition group">
+                                        <img src={book.coverImage} className="w-12 h-16 object-cover rounded shadow-sm mr-4" alt="" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-bold text-gray-900 truncate">{book.title}</p>
+                                            <p className="text-xs text-gray-500">{book.author} • ${book.price}</p>
+                                        </div>
+                                        <button onClick={() => deleteBook(book.id)} className="p-2 text-gray-400 hover:text-red-600 transition opacity-0 group-hover:opacity-100">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
